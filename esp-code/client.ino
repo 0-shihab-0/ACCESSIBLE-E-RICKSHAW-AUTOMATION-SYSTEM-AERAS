@@ -133,7 +133,7 @@ void loop() {
   // Handle server communication for active rides
   if (currentRideId.length() > 0 && currentRideStatus != "idle" && currentRideStatus != "completed") {
     get_ride_status();
-    set_led_status(); // Fixed function call
+    set_led_status(); 
   }
 
   switch (currentState) {
@@ -283,9 +283,9 @@ void transitionTo(SystemState newState) {
 }
 
 void setLEDs(bool yellow, bool red, bool green) {
-  digitalWrite(YELLOW_LED_PIN, yellow);  // Fixed: YELLOW_LED_PIN
-  digitalWrite(RED_LED_PIN, red);        // Fixed: RED_LED_PIN
-  digitalWrite(GREEN_LED_PIN, green);    // Fixed: GREEN_LED_PIN
+  digitalWrite(YELLOW_LED_PIN, yellow);  
+  digitalWrite(RED_LED_PIN, red);        
+  digitalWrite(GREEN_LED_PIN, green);    
 }
 
 // Buzzer functions
@@ -515,10 +515,8 @@ void get_ride_status() {
     http.end();
   }
 }
-
-// FIXED FUNCTION: Consistent pin naming
 void set_led_status() {
-  digitalWrite(RED_LED_PIN, currentRideStatus == "pending" ? HIGH : LOW);        // Fixed: RED_LED_PIN
-  digitalWrite(YELLOW_LED_PIN, currentRideStatus == "accepted" ? HIGH : LOW);    // Fixed: YELLOW_LED_PIN
-  digitalWrite(GREEN_LED_PIN, (currentRideStatus == "in_progress" || currentRideStatus == "completed") ? HIGH : LOW); // Fixed: GREEN_LED_PIN
+  digitalWrite(RED_LED_PIN, currentRideStatus == "pending" ? HIGH : LOW);       
+  digitalWrite(YELLOW_LED_PIN, currentRideStatus == "accepted" ? HIGH : LOW);    
+  digitalWrite(GREEN_LED_PIN, (currentRideStatus == "in_progress" || currentRideStatus == "completed") ? HIGH : LOW); 
 }
