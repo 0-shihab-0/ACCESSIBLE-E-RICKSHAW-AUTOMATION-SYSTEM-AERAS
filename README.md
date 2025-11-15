@@ -43,7 +43,6 @@ node server.js
 * [Problem Statement](#🎯-problem-statement)
 * [Solution](#💡-solution)
 * [Features](#✨-key-features)
-* [Demo Video](#🎥-demo-video)
 * [Setup Instructions](#🛠️-setup-instructions)
 * [Hardware Setup](#🔌-hardware-architecture)
 * [API Documentation](#📡-api-documentation)
@@ -125,14 +124,12 @@ AERAS bridges users, rickshaw pullers, and administrators seamlessly.
 
 ---
 
-## 🎥 Demo Video
-
-> *(Place your video link here)*
-> Shows full journey, sensor operations, dashboards, and points system.
-
----
 
 ## 🛠️ Setup Instructions
+## ⚠️ Important Note
+The backend is currently accessible only via **localhost**. 
+Ngrok and other tunneling tools were attempted but could not be configured in time for the hackathon submission.
+
 
 ### Backend Setup
 
