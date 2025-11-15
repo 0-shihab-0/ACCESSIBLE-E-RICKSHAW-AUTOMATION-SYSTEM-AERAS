@@ -17,6 +17,8 @@
 
 ## 🚀 Quick Start
 
+> ⚠️ **Note:** The backend currently runs locally (`localhost`). A public deployment was not configured due to time constraints and Ngrok issues. To demo the system, please run the backend locally.
+
 ### 1. Start Backend Server
 ```bash
 cd backend
@@ -24,16 +26,16 @@ npm install
 node server.js
 ````
 
-### 2. Access Web Interfaces
+### 2. Access Web Interfaces (Local)
 
-* **Rickshaw UI:** [http://localhost:3000/rickshaw.html](http://localhost:3000/rickshaw.html)
-* **Admin Dashboard:** [http://localhost:3000/admin.html](http://localhost:3000/admin.html)
+* **Rickshaw UI:** `rickshaw.html`
+* **Admin Dashboard:** `admin.html`
 
 ### 3. Run Wokwi Simulation
 
 1. Open **Wokwi ESP32 Simulator**
-2. Copy your ESP32 firmware code
-3. Add required components
+2. Copy our ESP32 code
+3. Add components (Ultrasonic, LEDs, Button, Buzzer, OLED)
 4. Click **Start Simulation**
 
 ---
@@ -64,7 +66,7 @@ node server.js
 
 ### **Challenges**
 
-Traditional ride-hailing apps create problems for these groups due to:
+Traditional ride-hailing apps create difficulties due to:
 
 * Complex interfaces
 * Small touch targets
@@ -73,21 +75,21 @@ Traditional ride-hailing apps create problems for these groups due to:
 
 ### **Mission**
 
-Build an **accessible, app-less ride request system** using a **physical location block** with multi-sensor verification.
+Enable **app-less ride requests** through a physical location block with multi-sensor verification.
 
 ---
 
 ## 💡 Solution
 
-AERAS bridges users, rickshaw pullers, and administrators seamlessly.
+AERAS is a **hardware + software system** connecting users, rickshaw pullers, and administrators.
 
-### 🎮 Physical Interface Includes
+### 🎮 Physical Interface
 
 * Ultrasonic presence detection
 * Laser/LDR verification
 * LED indicators
 * Buzzer confirmation
-* OLED displays
+* OLED status displays
 
 ### 🔧 Technical Stack
 
@@ -105,15 +107,15 @@ AERAS bridges users, rickshaw pullers, and administrators seamlessly.
 * Zero learning curve
 * Multi-sensor security
 * LEDs + OLED feedback
-* Buzzer confirmation
-* No smartphone required
+* Audio confirmation
+* No smartphone needed
 
 ### **For Rickshaw Pullers**
 
 * Web dashboard
 * Accept/reject rides
 * Points reward system
-* Pickup/dropoff guidance
+* Navigation guidance
 
 ### **For Administrators**
 
@@ -124,12 +126,7 @@ AERAS bridges users, rickshaw pullers, and administrators seamlessly.
 
 ---
 
-
 ## 🛠️ Setup Instructions
-## ⚠️ Important Note
-The backend is currently accessible only via **localhost**. 
-Ngrok and other tunneling tools were attempted but could not be configured in time for the hackathon submission.
-
 
 ### Backend Setup
 
@@ -139,9 +136,20 @@ npm install express cors
 node server.js
 ```
 
-Visit: **[http://localhost:3000](http://localhost:3000)**
+Visit: `http://localhost:3000` in your browser.
 Expected output:
 `AERAS Backend Server is active`
+
+### Web Interfaces
+
+* **Rickshaw UI:** `rickshaw.html`
+* **Admin Dashboard:** `admin.html`
+
+### Wokwi Simulation
+
+* Copy ESP32 code into a new Wokwi project
+* Add the necessary components
+* Start the simulation
 
 ---
 
@@ -171,8 +179,6 @@ OLED/Buzzer                        Real-time Sync   Admin Panel
 ---
 
 ## 📡 API Documentation
-
-### Core Endpoints
 
 | Method | Endpoint               | Description         | Body                              |
 | ------ | ---------------------- | ------------------- | --------------------------------- |
@@ -268,7 +274,7 @@ await fetch('http://localhost:3000/request-ride', {
 * Fully app-less
 * Physical human interaction
 * Audio-visual feedback
-* Gamified reward system
+* Reward system
 
 ---
 
@@ -314,4 +320,3 @@ This project is licensed under the **MIT License**.
 Making transportation accessible for everyone. 🚗💨
 
 </div>
-
