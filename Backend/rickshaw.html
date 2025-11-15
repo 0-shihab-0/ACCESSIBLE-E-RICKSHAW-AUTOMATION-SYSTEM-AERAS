@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AERAS - Rickshaw Puller</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Styles */
+        body { font-family: 'Inter', sans-serif; }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn {
+            transition: all 0.2s ease;
+        }
+        .btn-green { background-color: #10B981; } /* bg-green-500 */
+        .btn-green:hover { background-color: #059669; } /* bg-green-600 */
+        .btn-yellow { background-color: #F59E0B; } /* bg-yellow-500 */
+        .btn-yellow:hover { background-color: #D97706; } /* bg-yellow-600 */
+        .btn-blue { background-color: #3B82F6; } /* bg-blue-500 */
+        .btn-blue:hover { background-color: #2563EB; } /* bg-blue-600 */
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="bg-white rounded-lg shadow p-6 mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">AERAS Puller</h1>
+                <p class="text-gray-600">Welcome, Puller 001</p>
+            </div>
+            <div class="text-right">
+                <div class="text-lg text-gray-700">Total Points</div>
+                <div id="total-points" class="text-3xl font-bold text-green-600">0</div>
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6 text-center">
+            <button id="refresh-button" class="btn btn-blue text-white font-bold py-2 px-6 rounded-lg text-lg">
+                Refresh Requests
+            </button>
+        </div>
+
+        <!-- Ride Sections -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Section: New Ride Requests -->
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">New Requests</h2>
+                <div id="pending-rides-container" class="space-y-4">
+                    <!-- Pending rides will be injected here -->
+                    <p id="no-pending-rides" class="text-gray-500 text-center">No new requests.</p>
+                </div>
+            </div>
+
+            <!-- Section: Active / In-Progress Rides -->
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">My Active Ride</h2>
+                <div id="active-rides-container" class="space-y-4">
+                    <!-- Active rides will be injected here -->
+                    <p id="no-active-rides" class="text-gray-500 text-center">No active ride.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Store the server URL
+        // In a real app, this would be dynamic, but localhost:3000 is fine for the hackathon.
+        const API_BASE_URL = window.location.origin;
+
+        // --- DOM Elements ---
+        const pendingRidesContainer = document.getElementById('pending-rides-container');
+        const activeRidesContainer = document.getElementById('active-rides-container');
+        const noPendingRides = document.getElementById('no-pending-rides');
+        const noActiveRides = document.getElementById('no-active-rides');
+        const totalPointsEl = document.getElementById('total-points');
+        const refreshButton = document.getElementById('refresh-button');
+
+        // --- Event Listeners ---
+        refreshButton.addEventListener('click', fetchRides);
+
+        // --- API Functions ---
+
+        /**
+         * Fetches all ride data from the server
+         */
+        async function fetchRides() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rides`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                updateUI(data.rides, data.pullerPoints);
+            } catch (error) {
+                console.error("Error fetching rides:", error);
+                alert("Could not connect to server. Is 'node server.js' running?");
+            }
+        }
+
+        /**
+         * Sends a request to the server to perform an action (accept, pickup, dropoff)
+         */
+        async function performRideAction(rideId, action) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/${action}/${rideId}`, {
+                    method: 'POST'
+                });
+                if (!response.ok) {
+                    throw new Error(`Action ${action} failed!`);
+                }
+                // After a successful action, refresh all data
+                fetchRides();
+            } catch (error) {
+                console.error(`Error performing ${action}:`, error);
+                alert(`Action ${action} failed. Please try again.`);
+            }
+        }
+
+        // --- UI Update Functions ---
+
+        /**
+         * Main function to refresh the entire UI based on new data
+         */
+        function updateUI(rides, pullerPoints) {
+            // Clear existing content
+            pendingRidesContainer.innerHTML = '';
+            activeRidesContainer.innerHTML = '';
+            
+            // Filter rides for "this" puller (puller_001)
+            // In a real app, this would be based on login.
+            const myPullerId = "puller_001";
+            
+            const myPendingRides = rides.filter(ride => ride.pullerId === myPullerId && ride.status === 'pending');
+            const myActiveRides = rides.filter(ride => ride.pullerId === myPullerId && (ride.status === 'accepted' || ride.status === 'in_progress'));
+
+            // 1. Update Total Points (Test Case 6e)
+            totalPointsEl.textContent = pullerPoints[myPullerId] || 0;
+
+            // 2. Render Pending Rides (Test Case 6a)
+            if (myPendingRides.length > 0) {
+                noPendingRides.style.display = 'none';
+                myPendingRides.forEach(ride => {
+                    pendingRidesContainer.appendChild(createRideCard(ride, 'pending'));
+                });
+            } else {
+                pendingRidesContainer.appendChild(noPendingRides);
+                noPendingRides.style.display = 'block';
+            }
+
+            // 3. Render Active Ride (Test Case 6c)
+            if (myActiveRides.length > 0) {
+                noActiveRides.style.display = 'none';
+                // A puller can only have one active ride at a time
+                const activeRide = myActiveRides[0]; 
+                activeRidesContainer.appendChild(createRideCard(activeRide, activeRide.status));
+            } else {
+                activeRidesContainer.appendChild(noActiveRides);
+                noActiveRides.style.display = 'block';
+            }
+        }
+
+        /**
+         * Creates an HTML element for a single ride card
+         */
+        function createRideCard(ride, type) {
+            const card = document.createElement('div');
+            card.className = 'card bg-white rounded-lg shadow p-5';
+            
+            let buttonHtml = '';
+
+            // Generate button based on ride status
+            if (type === 'pending') {
+                // Test Case 6b
+                buttonHtml = `<button class="btn btn-green text-white font-bold py-2 px-4 rounded w-full mt-4" onclick="performRideAction('${ride.id}', 'accept-ride')">
+                                Accept Ride
+                            </button>`;
+            } else if (type === 'accepted') {
+                // Test Case 6c
+                buttonHtml = `<button class="btn btn-yellow text-white font-bold py-2 px-4 rounded w-full mt-4" onclick="performRideAction('${ride.id}', 'confirm-pickup')">
+                                Confirm Pickup
+                            </button>`;
+            } else if (type === 'in_progress') {
+                // Test Case 6d
+                buttonHtml = `<button class="btn btn-blue text-white font-bold py-2 px-4 rounded w-full mt-4" onclick="performRideAction('${ride.id}', 'confirm-dropoff')">
+                                Confirm Drop-off
+                            </button>`;
+            }
+
+            card.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xl font-bold text-gray-800">${ride.pickup}</h3>
+                    <span class="text-sm font-medium text-gray-500">${ride.id}</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    <span class="text-lg font-semibold">${ride.destination}</span>
+                </div>
+                ${buttonHtml}
+            `;
+            return card;
+        }
+
+        // --- Initial Load ---
+        fetchRides();
+        
+        // Auto-refresh every 5 seconds (for demo purposes)
+        setInterval(fetchRides, 5000);
+
+    </script>
+</body>
+</html>

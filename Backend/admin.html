@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AERAS - Admin Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .stat-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        /* Status Badge Colors */
+        .status-pending { background-color: #FBBF24; color: #78350F; } /* bg-yellow-400, text-yellow-800 */
+        .status-accepted { background-color: #60A5FA; color: #1E40AF; } /* bg-blue-400, text-blue-800 */
+        .status-in_progress { background-color: #34D399; color: #065F46; } /* bg-green-400, text-green-800 */
+        .status-completed { background-color: #D1D5DB; color: #374151; } /* bg-gray-400, text-gray-700 */
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">AERAS Admin Dashboard</h1>
+
+        <!-- Stats Overview (Test Case 10a) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-white rounded-lg p-6">
+                <div class="text-sm font-medium text-gray-500">Total Rides</div>
+                <div id="stat-total-rides" class="text-4xl font-bold text-gray-900">0</div>
+            </div>
+            <div class="stat-card bg-white rounded-lg p-6">
+                <div class="text-sm font-medium text-gray-500">Active Rides</div>
+                <div id="stat-active-rides" class="text-4xl font-bold text-blue-600">0</div>
+            </div>
+            <div class="stat-card bg-white rounded-lg p-6">
+                <div class="text-sm font-medium text-gray-500">Pending Requests</div>
+                <div id="stat-pending-rides" class="text-4xl font-bold text-yellow-600">0</div>
+            </div>
+            <div class="stat-card bg-white rounded-lg p-6">
+                <div class="text-sm font-medium text-gray-500">Total Points Awarded</div>
+                <div id="stat-total-points" class="text-4xl font-bold text-green-600">0</div>
+            </div>
+        </div>
+
+        <!-- Main Content: Ride Management & Puller Leaderboard (Test Case 10b, 10c) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Ride History Table -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden">
+                <h2 class="text-2xl font-semibold text-gray-800 p-6 border-b">All Ride History</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ride ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puller ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ride-history-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Rows will be injected by JavaScript -->
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Puller Leaderboard -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Puller Leaderboard</h2>
+                <ul id="puller-leaderboard" class="space-y-4">
+                    <!-- Leaderboard items will be injected by JavaScript -->
+                    <li class="text-center text-gray-500">Loading data...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- FIX ---
+        // The API_BASE_URL was changed from window.location.origin
+        // to 'http://localhost:3000' because the preview window
+        // runs on a different domain and cannot find the server otherwise.
+        const API_BASE_URL = window.location.origin;
+        // --- DOM Elements ---
+        const statTotalRides = document.getElementById('stat-total-rides');
+        const statActiveRides = document.getElementById('stat-active-rides');
+        const statPendingRides = document.getElementById('stat-pending-rides');
+        const statTotalPoints = document.getElementById('stat-total-points');
+        const rideHistoryTable = document.getElementById('ride-history-table');
+        const pullerLeaderboard = document.getElementById('puller-leaderboard');
+
+        /**
+         * Fetches all data and updates the admin dashboard
+         */
+        async function fetchAdminData() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rides`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                updateDashboard(data.rides, data.pullerPoints);
+            } catch (error) {
+                console.error("Error fetching admin data:", error);
+                alert("Could not connect to server. Is 'node server.js' running?");
+            }
+        }
+
+        /**
+         * Main function to refresh the entire dashboard
+         */
+        function updateDashboard(rides, pullerPoints) {
+            // 1. Update Stat Cards (Test Case 10a)
+            const activeRidesCount = rides.filter(r => r.status === 'accepted' || r.status === 'in_progress').length;
+            const pendingRidesCount = rides.filter(r => r.status === 'pending').length;
+            const totalPointsAwarded = Object.values(pullerPoints).reduce((sum, points) => sum + points, 0);
+
+            statTotalRides.textContent = rides.length;
+            statActiveRides.textContent = activeRidesCount;
+            statPendingRides.textContent = pendingRidesCount;
+            statTotalPoints.textContent = totalPointsAwarded;
+
+            // 2. Update Ride History Table (Test Case 10b)
+            rideHistoryTable.innerHTML = ''; // Clear existing
+            if (rides.length === 0) {
+                rideHistoryTable.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No rides found.</td></tr>`;
+            } else {
+                // Show newest rides first
+                rides.slice().reverse().forEach(ride => {
+                    const row = document.createElement('tr');
+                    
+                    // Format status with a colored badge
+                    const statusClass = `status-${ride.status.replace('_', '')}`;
+                    const statusText = ride.status.replace('_', ' ').toUpperCase();
+
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${ride.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            <div>${ride.pickup}</div>
+                            <div class="text-xs text-gray-400">to</div>
+                            <div>${ride.destination}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${ride.pullerId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">${ride.points}</td>
+                    `;
+                    rideHistoryTable.appendChild(row);
+                });
+            }
+
+            // 3. Update Puller Leaderboard (Test Case 10c)
+            pullerLeaderboard.innerHTML = ''; // Clear existing
+            
+            // Sort pullers by points, descending
+            const sortedPullers = Object.entries(pullerPoints)
+                .sort(([, pointsA], [, pointsB]) => pointsB - pointsA);
+
+            if (sortedPullers.length === 0) {
+                pullerLeaderboard.innerHTML = `<li class="text-center text-gray-500">No puller data.</li>`;
+            } else {
+                sortedPullers.forEach(([pullerId, points]) => {
+                    const item = document.createElement('li');
+                    item.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-lg';
+                    item.innerHTML = `
+                        <span class="font-medium text-gray-800">${pullerId}</span>
+                        <span class="font-bold text-lg text-green-600">${points} pts</span>
+                    `;
+                    pullerLeaderboard.appendChild(item);
+                });
+            }
+        }
+
+        // --- Initial Load & Auto-Refresh ---
+        fetchAdminData();
+        setInterval(fetchAdminData, 3000); // Refresh every 3 seconds
+
+    </script>
+</body>
+</html>
